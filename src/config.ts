@@ -36,6 +36,18 @@ export function loadConfig(): RouterConfig {
 }
 
 /**
+ * Check if a base URL is a default cloud provider URL (requires API key)
+ */
+function isDefaultProviderUrl(provider: string, baseUrl: string): boolean {
+  const defaults: Record<string, string[]> = {
+    anthropic: ['https://api.anthropic.com', 'api.anthropic.com'],
+    openai: ['https://api.openai.com', 'api.openai.com'],
+  };
+  const urls = defaults[provider] ?? [];
+  return urls.some(url => baseUrl.includes(url));
+}
+
+/**
  * Validate configuration
  */
 export function validateConfig(config: RouterConfig): string[] {
@@ -53,12 +65,18 @@ export function validateConfig(config: RouterConfig): string[] {
     errors.push('Power model base URL is required');
   }
 
+  // Only require API key for direct cloud provider access
+  // When using a proxy (e.g., OpenClaw), the proxy handles auth
   if (config.powerModel.provider === 'anthropic' && !config.powerModel.apiKey) {
-    errors.push('Power model API key is required for Anthropic');
+    if (isDefaultProviderUrl('anthropic', config.powerModel.baseUrl)) {
+      errors.push('Power model API key is required for direct Anthropic access');
+    }
   }
 
   if (config.powerModel.provider === 'openai' && !config.powerModel.apiKey) {
-    errors.push('Power model API key is required for OpenAI');
+    if (isDefaultProviderUrl('openai', config.powerModel.baseUrl)) {
+      errors.push('Power model API key is required for direct OpenAI access');
+    }
   }
 
   return errors;

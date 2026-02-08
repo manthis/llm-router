@@ -15,18 +15,29 @@ import {
 import { classifyRequest } from './classifier.js';
 
 /**
+ * Check if using direct Anthropic API (not a proxy)
+ */
+function isDirectAnthropic(config: ModelConfig): boolean {
+  return config.provider === 'anthropic' && 
+    config.baseUrl.includes('api.anthropic.com');
+}
+
+/**
  * Create an OpenAI-compatible client for a model config
  */
 function createClient(config: ModelConfig): OpenAI {
-  // For Anthropic, we use their OpenAI-compatible endpoint
-  const baseURL = config.provider === 'anthropic' 
-    ? 'https://api.anthropic.com/v1'
-    : config.baseUrl;
+  // For direct Anthropic, use their OpenAI-compatible endpoint
+  // For proxies (like OpenClaw), use the configured baseUrl as-is
+  let baseURL = config.baseUrl;
+  if (isDirectAnthropic(config)) {
+    baseURL = 'https://api.anthropic.com/v1';
+  }
   
   return new OpenAI({
     apiKey: config.apiKey ?? 'not-required',
     baseURL,
-    defaultHeaders: config.provider === 'anthropic' 
+    // Only add Anthropic headers for direct Anthropic access
+    defaultHeaders: isDirectAnthropic(config)
       ? { 'anthropic-version': '2023-06-01' }
       : undefined,
   });

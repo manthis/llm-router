@@ -66,6 +66,23 @@ THRESHOLD_MIN_CODE_LINES=30   # Code lines to trigger power model
 THRESHOLD_MIN_SCORE=50        # Complexity score threshold (0-100)
 ```
 
+### Using OpenClaw as Power Backend
+
+If you're using [OpenClaw](https://github.com/openclaw/openclaw) with Claude Code OAuth, you can route power requests through OpenClaw instead of using a direct API key:
+
+```bash
+# Power via OpenClaw (uses existing OAuth session)
+POWER_PROVIDER=openai
+POWER_MODEL=anthropic/claude-opus-4-5
+POWER_BASE_URL=https://hal9000.local:18789/v1
+# No POWER_API_KEY needed - OpenClaw handles authentication
+```
+
+This is useful when:
+- You use Claude Code OAuth instead of direct API keys
+- You want to leverage OpenClaw's authentication and routing
+- You want to consolidate API access through a single proxy
+
 ### Using with OpenClaw
 
 Add the router as a provider in your OpenClaw config:
