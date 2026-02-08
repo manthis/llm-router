@@ -123,6 +123,27 @@ describe('detectMultiStepReasoning', () => {
   it('should return false for simple text', () => {
     expect(detectMultiStepReasoning('Hello world')).toBe(false);
   });
+
+  // French language tests
+  it('should detect French "explique-moi" pattern', () => {
+    expect(detectMultiStepReasoning('Explique-moi comment ça marche')).toBe(true);
+  });
+
+  it('should detect French "d\'abord...ensuite" pattern', () => {
+    expect(detectMultiStepReasoning("D'abord on analyse, ensuite on implémente")).toBe(true);
+  });
+
+  it('should detect French step numbers', () => {
+    expect(detectMultiStepReasoning('Étape 1: Faire ceci')).toBe(true);
+  });
+
+  it('should detect French comparison questions', () => {
+    expect(detectMultiStepReasoning('Compare React et Vue')).toBe(true);
+  });
+
+  it('should detect French "comment" questions', () => {
+    expect(detectMultiStepReasoning('Comment puis-je faire ça?')).toBe(true);
+  });
 });
 
 describe('detectDebugging', () => {
@@ -140,6 +161,27 @@ describe('detectDebugging', () => {
 
   it('should return false for non-debugging text', () => {
     expect(detectDebugging('Create a new function')).toBe(false);
+  });
+
+  // French language tests
+  it('should detect French error messages', () => {
+    expect(detectDebugging('Erreur: impossible de lire la propriété')).toBe(true);
+  });
+
+  it('should detect French "ne fonctionne pas"', () => {
+    expect(detectDebugging('Mon code ne fonctionne pas')).toBe(true);
+  });
+
+  it('should detect French "ça ne marche plus"', () => {
+    expect(detectDebugging('Ça ne marche plus depuis hier')).toBe(true);
+  });
+
+  it('should detect French "corrige" requests', () => {
+    expect(detectDebugging('Corrige ce bug stp')).toBe(true);
+  });
+
+  it('should detect French "problème avec"', () => {
+    expect(detectDebugging("J'ai un problème avec mon API")).toBe(true);
   });
 });
 
@@ -219,5 +261,74 @@ ${Array(40).fill('async function processRequest() { await db.query(); }').join('
     ];
     const result = classifyRequest(messages, defaultThresholds);
     expect(result.usePowerModel).toBe(true);
+  });
+
+  // French language routing tests
+  describe('French language support', () => {
+    it('should route complex French explanation requests to power model', () => {
+      const messages: ChatMessage[] = [
+        { role: 'user', content: 'Explique-moi la théorie des cordes' },
+      ];
+      const result = classifyRequest(messages, defaultThresholds);
+      expect(result.usePowerModel).toBe(true);
+      expect(result.signals).toContain('multi_step_reasoning');
+    });
+
+    it('should route simple French greetings to default model', () => {
+      const messages: ChatMessage[] = [
+        { role: 'user', content: 'Salut ça va?' },
+      ];
+      const result = classifyRequest(messages, defaultThresholds);
+      expect(result.usePowerModel).toBe(false);
+    });
+
+    it('should route French analysis requests to power model', () => {
+      const messages: ChatMessage[] = [
+        { role: 'user', content: 'Analyse ce code et trouve les problèmes de performance' },
+      ];
+      const result = classifyRequest(messages, defaultThresholds);
+      expect(result.usePowerModel).toBe(true);
+    });
+
+    it('should route French debugging requests to power model', () => {
+      const messages: ChatMessage[] = [
+        { role: 'user', content: 'Mon code ne fonctionne pas, aide-moi à débugger' },
+      ];
+      const result = classifyRequest(messages, defaultThresholds);
+      expect(result.usePowerModel).toBe(true);
+      expect(result.signals).toContain('debugging');
+    });
+
+    it('should route French comparison requests to power model', () => {
+      const messages: ChatMessage[] = [
+        { role: 'user', content: 'Compare React et Vue, quels sont les avantages et inconvénients?' },
+      ];
+      const result = classifyRequest(messages, defaultThresholds);
+      expect(result.usePowerModel).toBe(true);
+    });
+
+    it('should route simple French questions to default model', () => {
+      const messages: ChatMessage[] = [
+        { role: 'user', content: 'Quelle heure est-il?' },
+      ];
+      const result = classifyRequest(messages, defaultThresholds);
+      expect(result.usePowerModel).toBe(false);
+    });
+
+    it('should route French "pourquoi" deep questions to power model', () => {
+      const messages: ChatMessage[] = [
+        { role: 'user', content: 'Pourquoi est-ce que les trous noirs émettent de la radiation de Hawking?' },
+      ];
+      const result = classifyRequest(messages, defaultThresholds);
+      expect(result.usePowerModel).toBe(true);
+    });
+
+    it('should route French summary requests to power model', () => {
+      const messages: ChatMessage[] = [
+        { role: 'user', content: 'Résume-moi les principales théories de la mécanique quantique' },
+      ];
+      const result = classifyRequest(messages, defaultThresholds);
+      expect(result.usePowerModel).toBe(true);
+    });
   });
 });

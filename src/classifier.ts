@@ -7,35 +7,63 @@
 
 import { ChatMessage, ClassificationResult, ClassificationThresholds } from './types.js';
 
-/** Keywords that suggest complex reasoning is needed */
+/** Keywords that suggest complex reasoning is needed (English + French) */
 const POWER_KEYWORDS = [
   // Architecture & Design
   'architect', 'architecture', 'design pattern', 'refactor', 'restructure',
   'scalab', 'microservice', 'distributed', 'system design',
+  'restructurer', 'conception',
   
-  // Deep Analysis
+  // Deep Analysis (EN)
   'analyze', 'analyse', 'debug', 'diagnose', 'investigate', 'root cause',
   'performance', 'optimize', 'bottleneck', 'memory leak',
+  // Deep Analysis (FR)
+  'analyser', 'débugger', 'diagnostiquer', 'enquêter', 'cause racine',
+  'optimiser', 'goulot', 'fuite mémoire',
   
   // Complex Coding
   'implement', 'algorithm', 'data structure', 'recursive', 'dynamic programming',
   'concurrency', 'async', 'thread', 'race condition', 'deadlock',
   'security', 'vulnerability', 'exploit', 'injection', 'authentication',
+  'implémenter', 'algorithme', 'structure de données', 'récursif', 'programmation dynamique',
+  'concurrence', 'authentification', 'vulnérabilité',
   
-  // Multi-step Reasoning
+  // Multi-step Reasoning (EN)
   'step by step', 'walk me through', 'explain how', 'compare and contrast',
   'pros and cons', 'trade-off', 'tradeoff', 'best approach',
+  // Multi-step Reasoning (FR)
+  'étape par étape', 'explique-moi', 'explique moi', 'comment fonctionne',
+  'compare', 'avantages et inconvénients', 'pour et contre', 'meilleure approche',
+  
+  // Explanation requests (EN)
+  'explain', 'describe', 'elaborate', 'summarize', 'summary',
+  // Explanation requests (FR)
+  'explique', 'expliquer', 'décris', 'décrire', 'résume', 'résumer', 'résumé',
+  
+  // Why/How questions (EN)
+  'why does', 'why is', 'how does', 'how do', 'how can',
+  // Why/How questions (FR)
+  'pourquoi', 'comment faire', 'comment est-ce',
   
   // Research & Synthesis
   'research', 'synthesize', 'comprehensive', 'in-depth', 'thorough',
   'literature review', 'state of the art',
+  'recherche', 'synthétiser', 'approfondi', 'complet',
 ];
 
-/** Keywords that suggest simple tasks (negative weight) */
+/** Keywords that suggest simple tasks (negative weight) - English + French */
 const SIMPLE_KEYWORDS = [
+  // Greetings (EN)
   'hello', 'hi', 'thanks', 'thank you', 'ok', 'yes', 'no',
+  // Greetings (FR)
+  'salut', 'bonjour', 'coucou', 'merci', 'oui', 'non', 'ça va', 'ca va',
+  
+  // Simple tasks (EN)
   'what time', 'weather', 'reminder', 'status', 'list',
   'send', 'message', 'email', 'check',
+  // Simple tasks (FR)
+  'quelle heure', 'météo', 'meteo', 'rappel', 'statut', 'liste',
+  'envoie', 'envoyer', 'message', 'mail', 'vérifie', 'vérifier',
 ];
 
 /** Programming languages often in complex requests */
@@ -94,26 +122,44 @@ export function countKeywordMatches(text: string, keywords: string[]): number {
 }
 
 /**
- * Detect if the request involves multiple steps or complex reasoning
+ * Detect if the request involves multiple steps or complex reasoning (EN + FR)
  */
 export function detectMultiStepReasoning(text: string): boolean {
   const patterns = [
+    // English patterns
     /first[\s,]+.*then/i,
     /step\s*\d/i,
     /\d+\.\s+\w+.*\n.*\d+\.\s+\w+/,
     /compare\s+\w+\s+(and|vs|versus|with)\s+\w+/i,
     /what\s+are\s+the\s+(differences?|similarities?)/i,
     /how\s+(would|should|can|do)\s+(you|i|we)\s+\w+.*\?/i,
+    
+    // French patterns
+    /d'abord[\s,]+.*ensuite/i,
+    /premi[èe]rement[\s,]+.*puis/i,
+    /étape\s*\d/i,
+    /compare[rz]?\s+\w+\s+(et|avec|à|vs)\s+\w+/i,
+    /quelles?\s+(sont|est)\s+(les?\s+)?(différences?|similitudes?)/i,
+    /comment\s+(puis-je|peut-on|faire|est-ce)/i,
+    /explique[\s-]*(moi|nous)?/i,
+    /pourquoi\s+(est-ce|faut-il|ne\s+pas)/i,
+    // Additional French command patterns for complex requests
+    /r[ée]sume[\s-]*(moi|nous)?/i,
+    /analyse[\s-]*(moi|nous)?\s+(ce|le|la|les|cet)/i,
+    /d[ée]cris[\s-]*(moi|nous)?/i,
+    /aide[\s-]*(moi|nous)?\s+[àa]\s+(comprendre|d[ée]bugger|analyser|r[ée]soudre|trouver)/i,
+    /help\s+me\s+(understand|debug|analyze|fix|find|solve)/i,
   ];
   
   return patterns.some((pattern) => pattern.test(text));
 }
 
 /**
- * Detect error messages or debugging context
+ * Detect error messages or debugging context (EN + FR)
  */
 export function detectDebugging(text: string): boolean {
   const patterns = [
+    // English patterns
     /error:/i,
     /exception:/i,
     /traceback/i,
@@ -123,6 +169,16 @@ export function detectDebugging(text: string): boolean {
     /not\s+working/i,
     /bug\b/i,
     /fix\s+(this|the|my)/i,
+    
+    // French patterns
+    /erreur\s*:/i,
+    /ne\s+(fonctionne|marche)\s+(pas|plus)/i,
+    /ça\s+(ne\s+)?(fonctionne|marche)\s+(pas|plus)/i,
+    /corrige[rz]?\s+(ce|le|mon|cette|la|ma)/i,
+    /répare[rz]?\s+(ce|le|mon|cette|la|ma)/i,
+    /problème\s+(avec|de|dans)/i,
+    /échoue\s+à/i,
+    /a\s+échoué/i,
   ];
   
   return patterns.some((pattern) => pattern.test(text));
@@ -154,10 +210,10 @@ export function calculateComplexityScore(text: string, thresholds: Classificatio
     signals.push(`code:${codeLines}lines`);
   }
   
-  // Power keywords (0-30 points)
+  // Power keywords (0-40 points) - weighted higher for complex reasoning signals
   const powerMatches = countKeywordMatches(text, POWER_KEYWORDS);
   if (powerMatches > 0) {
-    const keywordScore = Math.min(30, powerMatches * 6);
+    const keywordScore = Math.min(40, powerMatches * 10);
     score += keywordScore;
     signals.push(`power_keywords:${powerMatches}`);
   }
@@ -169,16 +225,42 @@ export function calculateComplexityScore(text: string, thresholds: Classificatio
     signals.push(`simple_keywords:${simpleMatches}`);
   }
   
-  // Multi-step reasoning (0-15 points)
+  // Multi-step reasoning (0-30 points)
   if (detectMultiStepReasoning(text)) {
-    score += 15;
+    score += 30;
     signals.push('multi_step_reasoning');
   }
   
-  // Debugging context (0-10 points)
+  // Debugging context (0-25 points)
   if (detectDebugging(text)) {
-    score += 10;
+    score += 25;
     signals.push('debugging');
+  }
+  
+  // Deep reasoning questions (0-15 points) - EN + FR
+  const deepQuestionPatterns = [
+    /\b(why|pourquoi)\b.*\?/i,
+    /\bhow\s+(does|do|can|could|would|is|are)\b.*\?/i,
+    /\bwhat\s+(is|are)\s+the\s+(difference|reason|cause|mechanism)/i,
+    /\bqu'?est[- ]ce\s+que?\b/i,
+    /\bcomment\s+(ça|cela)?\s*(fonctionne|marche)/i,
+  ];
+  if (deepQuestionPatterns.some((p) => p.test(text)) && text.length > 30) {
+    score += 15;
+    signals.push('deep_question');
+  }
+  
+  // Academic/theoretical topics (0-15 points) - EN + FR
+  const academicPatterns = [
+    /\b(theory|theorem|principle|concept|hypothesis)\b/i,
+    /\b(théorie|théorème|principe|concept|hypothèse)\b/i,
+    /\b(quantum|relativity|physics|mathematics|philosophy)\b/i,
+    /\b(quantique|relativité|physique|mathématiques?|philosophie)\b/i,
+    /\b(mécanique|thermodynamique|électromagnétisme)\b/i,
+  ];
+  if (academicPatterns.some((p) => p.test(text))) {
+    score += 15;
+    signals.push('academic_topic');
   }
   
   // Programming language mentions (0-5 points)
