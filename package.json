@@ -1,0 +1,44 @@
+{
+  "name": "llm-router",
+  "version": "0.1.0",
+  "description": "Smart LLM router - use local models by default, escalate to powerful models when needed",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "llm",
+    "router",
+    "ollama",
+    "anthropic",
+    "openai",
+    "proxy"
+  ],
+  "author": "Max Auburtin",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^5.2.1",
+    "openai": "^4.85.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5",
+    "eslint": "^9.19.0",
+    "@typescript-eslint/eslint-plugin": "^8.23.0",
+    "@typescript-eslint/parser": "^8.23.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
